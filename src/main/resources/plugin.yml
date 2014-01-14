@@ -1,0 +1,10 @@
+name: TnTLevelLimit
+main: kero.tntlevel.TnTLevelLimit
+version: 1.0
+commands:
+    tntlevel:
+        usage: /tntlevel
+        description: SafetyTnT Commands.
+    tntlevellimit:
+        usage: /tntlevel
+        description: SafetyTnT Commands.
