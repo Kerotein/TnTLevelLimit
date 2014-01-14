@@ -92,6 +92,9 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 	public void onPlace(BlockPlaceEvent event) {
 		if (event.isCancelled())
 			return;
+		if(event.getPlayer().hasPermission("tntlevel.bypass"))
+			return;
+		
 		if (event.getBlockPlaced().getType() == Material.TNT) {
 			if (!event.getPlayer().hasPermission("tntlevel.log")
 					&& !canPlaceTnt(event.getBlockPlaced().getLocation(),
