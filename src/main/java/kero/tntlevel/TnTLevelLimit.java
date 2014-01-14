@@ -1,9 +1,14 @@
 package kero.tntlevel;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -11,16 +16,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class TnTLevelLimit extends JavaPlugin implements Listener {
 
 	private int tntlevel;
+	private Map<Location, Player> activeTnTBlocks = new HashMap<Location, Player>();
 
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
 		reloadConfig();
+		saveConfig();
 		tntlevel = getConfig().getInt("TnT Level Limit", 30);
 
 		getLogger().info("TnT Level Limit enabled");
@@ -33,14 +41,19 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 		getLogger().info("TnT Level Limit disabled");
 	}
 
-	public boolean onCommand(CommandSender sender, Command cmd, String label,
-			String[] args) {
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("tntlevel")) {
 			if (args.length > 0) {
 				if (args[0].equalsIgnoreCase("limit")) {
+
 					if (!sender.hasPermission("tntlevel.setlimit")) {
-						sender.sendMessage(ChatColor.RED
-								+ "You do not have permission to use this command!");
+						sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
+						return true;
+					}
+
+					if (args.length < 2) {
+						sender.sendMessage(ChatColor.GRAY + "The current block limit is " + ChatColor.AQUA + tntlevel);
+						sender.sendMessage(ChatColor.GRAY + "To change this: /tntlevel limit <value>");
 						return true;
 					}
 
@@ -49,14 +62,11 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 					getConfig().set("TnT Level Limit", tntlevel);
 					saveConfig();
 
-					sender.sendMessage(ChatColor.GREEN
-							+ "TnT Level Limit is now " + ChatColor.AQUA
-							+ tntlevel);
+					sender.sendMessage(ChatColor.GREEN + "TnT Level Limit is now " + ChatColor.AQUA + tntlevel);
 					return true;
 				} else if (args[0].equalsIgnoreCase("reload")) {
 					if (!sender.hasPermission("tntlevel.reload")) {
-						sender.sendMessage(ChatColor.RED
-								+ "You do not have permission to use this command!");
+						sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
 						return true;
 					}
 					this.reloadConfig();
@@ -65,8 +75,7 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 					getConfig().set("TnT Level Limit", tntlevel);
 					saveConfig();
 
-					sender.sendMessage(ChatColor.GREEN
-							+ "TnTLevelLimit config has been reloaded.");
+					sender.sendMessage(ChatColor.GREEN + "TnTLevelLimit config has been reloaded.");
 					return true;
 				}
 				sender.sendMessage("---------- TnT Level Limit ----------");
@@ -76,10 +85,8 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 			}
 		}
 
-		if (!(sender.hasPermission("tntlevel.setlimit") || sender
-				.hasPermission("tntlevel.reload"))) {
-			sender.sendMessage(ChatColor.RED
-					+ "You do not have permission to use this command!");
+		if (!(sender.hasPermission("tntlevel.setlimit") || sender.hasPermission("tntlevel.reload"))) {
+			sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
 		} else {
 			sender.sendMessage("---------- TnT Level Limit ----------");
 			sender.sendMessage("/tntlevel limit <blocklimit>");
@@ -90,36 +97,45 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlace(BlockPlaceEvent event) {
-		if (event.isCancelled())
+		if (event.isCancelled()) return;
+		if (event.getPlayer().hasPermission("tntlevel.bypass")) {
+			activeTnTBlocks.put(event.getBlockPlaced().getLocation(), event.getPlayer());
 			return;
-		if(event.getPlayer().hasPermission("tntlevel.bypass"))
-			return;
-		
+		}
+
 		if (event.getBlockPlaced().getType() == Material.TNT) {
-			if (!event.getPlayer().hasPermission("tntlevel.log")
-					&& !canPlaceTnt(event.getBlockPlaced().getLocation(),
-							event.getPlayer())) {
+			if (!event.getPlayer().hasPermission("tntlevel.log") && !canPlaceTnt(event.getBlockPlaced().getLocation(), event.getPlayer())) {
 
 				event.setCancelled(true);
 
-				System.out.println("[TnTLevelLimit] "
-						+ event.getPlayer().getName()
-						+ " tried to place tnt at ["
-						+ event.getBlockPlaced().getX() + ", "
-						+ event.getBlockPlaced().getY() + ", "
-						+ event.getBlockPlaced().getZ() + "]");
+				System.out.println("[TnTLevelLimit] " + event.getPlayer().getName() + " tried to place tnt at [" + event.getBlockPlaced().getX() + ", " + event.getBlockPlaced().getY() + ", " + event.getBlockPlaced().getZ() + "]");
 
-				messageOPs(ChatColor.RED + "[TnTLevelLimit] "
-						+ event.getPlayer().getName()
-						+ " tried to place tnt at ["
-						+ event.getBlockPlaced().getX() + ", "
-						+ event.getBlockPlaced().getY() + ", "
-						+ event.getBlockPlaced().getZ() + "]");
+				messageOPs(ChatColor.RED + "[TnTLevelLimit] " + event.getPlayer().getName() + " tried to place tnt at [" + event.getBlockPlaced().getX() + ", " + event.getBlockPlaced().getY() + ", " + event.getBlockPlaced().getZ() + "]");
 
-				event.getPlayer().sendMessage(
-						ChatColor.RED + "You may only place TnT at level "
-								+ ChatColor.GREEN + tntlevel + ChatColor.RED
-								+ " or below.");
+				event.getPlayer().sendMessage(ChatColor.RED + "You may only place TnT at level " + ChatColor.GREEN + tntlevel + ChatColor.RED + " or below.");
+			}
+		}
+
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onEntityExplode(EntityExplodeEvent event) {
+		Player player = null;
+
+		for (Location location : activeTnTBlocks.keySet()) {
+			if (location.getBlockX() == event.getLocation().getBlockX() && location.getBlockY() == event.getLocation().getBlockY() && location.getBlockZ() == event.getLocation().getBlockZ()) {
+				player = activeTnTBlocks.get(location);
+				activeTnTBlocks.remove(location);
+				break;
+			}
+		}
+
+		if (player == null) {
+			List<Block> blockList = event.blockList();
+			for (Block block : blockList) {
+				if (block.getLocation().getY() > tntlevel) {
+					blockList.remove(block);
+				}
 			}
 		}
 
@@ -129,16 +145,14 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 		Player[] players = Bukkit.getServer().getOnlinePlayers();
 
 		for (Player player : players) {
-			if (player.isOp())
-				player.sendMessage(message);
+			if (player.isOp()) player.sendMessage(message);
 		}
 
 	}
 
 	public boolean canPlaceTnt(Location location, Player player) {
 
-		if (location.getBlockY() < tntlevel)
-			return true;
+		if (location.getBlockY() < tntlevel) return true;
 
 		return false;
 	}
