@@ -4,5 +4,5 @@ version: 1.0
 commands:
     tntlevel:
         usage: /tntlevel
-        alias: [tntlevellimit,tntl]
+        aliases: [tntlevellimit,tntl]
         description: SafetyTnT Commands.
