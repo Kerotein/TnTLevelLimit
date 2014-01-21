@@ -1,6 +1,6 @@
 name: TnTLevelLimit
 main: kero.tntlevel.TnTLevelLimit
-version: 1.0
+version: ${project.version}
 commands:
     tntlevel:
         usage: /tntlevel
