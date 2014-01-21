@@ -35,6 +35,8 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 		} catch (IOException e) {
 			// Failed to submit the statistics :-(
 		}
+		Updater updater = new Updater(this, 72604, this.getFile(),
+				Updater.UpdateType.DEFAULT, false);
 	}
 
 	@Override
