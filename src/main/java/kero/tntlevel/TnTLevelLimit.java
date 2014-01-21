@@ -2,14 +2,12 @@ package kero.tntlevel;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -17,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 
@@ -145,34 +142,6 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 						ChatColor.RED + "You may only place TnT at level "
 								+ ChatColor.GREEN + tntlevel + ChatColor.RED
 								+ " or below.");
-			}
-		}
-
-	}
-
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onEntityExplode(EntityExplodeEvent event) {
-		Player player = null;
-
-		for (Location location : activeTnTBlocks.keySet()) {
-			if (location.getBlockX() == event.getLocation().getBlockX()
-					&& location.getBlockY() == event.getLocation().getBlockY()
-					&& location.getBlockZ() == event.getLocation().getBlockZ()) {
-				player = activeTnTBlocks.get(location);
-				activeTnTBlocks.remove(location);
-				break;
-			}
-		}
-
-		if (player == null) {
-			List<Block> blockList = event.blockList();
-			if(!(blockList.size() > 0))
-				return;
-			
-			for (Block block : blockList) {
-				if (block.getLocation().getY() > tntlevel) {
-					blockList.remove(block);
-				}
 			}
 		}
 
