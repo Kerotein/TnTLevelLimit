@@ -1,5 +1,6 @@
 package kero.tntlevel;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.mcstats.Metrics;
 
 public class TnTLevelLimit extends JavaPlugin implements Listener {
 
@@ -30,10 +32,17 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 		saveDefaultConfig();
 		tntlevel = getConfig().getInt("TnT Level Limit", 30);
 		getLogger().info("TnT Level Limit enabled");
+		try {
+			Metrics metrics = new Metrics(this);
+			metrics.start();
+		} catch (IOException e) {
+			// Failed to submit the statistics :-(
+		}
 	}
 
 	@Override
 	public void onDisable() {
+		reloadConfig();
 		getLogger().info("TnT Level Limit disabled");
 	}
 
@@ -41,7 +50,9 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 			String[] args) {
 		if (cmd.getName().equalsIgnoreCase("tntlevel")) {
 			if (args.length > 0) {
-				if (args[0].equalsIgnoreCase("limit")) {
+
+				if (args[0].equalsIgnoreCase("limit")
+						|| args[0].equalsIgnoreCase("l")) {
 
 					if (!sender.hasPermission("tntlevel.setlimit")) {
 						sender.sendMessage(ChatColor.RED
@@ -54,7 +65,7 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 								+ "The current block limit is "
 								+ ChatColor.AQUA + tntlevel);
 						sender.sendMessage(ChatColor.GRAY
-								+ "To change this: /tntlevel limit <value>");
+								+ "To change this, use: /tntlevel limit <value>");
 						return true;
 					}
 
@@ -73,12 +84,8 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 								+ "You do not have permission to use this command!");
 						return true;
 					}
-					this.reloadConfig();
-					tntlevel = getConfig().getInt("tntlevel", 30);
-
-					getConfig().set("TnT Level Limit", tntlevel);
-					saveConfig();
-
+					reloadConfig();
+					tntlevel = getConfig().getInt("TnT Level Limit", 30);
 					sender.sendMessage(ChatColor.GREEN
 							+ "TnTLevelLimit config has been reloaded.");
 					return true;
@@ -106,7 +113,8 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 	public void onPlace(BlockPlaceEvent event) {
 		if (event.isCancelled())
 			return;
-		if (event.getPlayer().hasPermission("tntlevel.bypass")) {
+		if (event.getPlayer().hasPermission("tntlevel.nobypass")) {
+		} else if (event.getPlayer().hasPermission("tntlevel.bypass")) {
 			activeTnTBlocks.put(event.getBlockPlaced().getLocation(),
 					event.getPlayer());
 			return;
@@ -158,6 +166,9 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 
 		if (player == null) {
 			List<Block> blockList = event.blockList();
+			if(!(blockList.size() > 0))
+				return;
+			
 			for (Block block : blockList) {
 				if (block.getLocation().getY() > tntlevel) {
 					blockList.remove(block);
