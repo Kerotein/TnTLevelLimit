@@ -28,15 +28,15 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(this, this);
 		saveDefaultConfig();
 		tntlevel = getConfig().getInt("TnT Level Limit", 30);
-		getLogger().info("TnT Level Limit enabled");
+		getLogger().info(
+				"TnT Level Limit " + this.getDescription().getVersion()
+						+ " enabled");
 		try {
 			Metrics metrics = new Metrics(this);
 			metrics.start();
 		} catch (IOException e) {
 			// Failed to submit the statistics :-(
 		}
-		Updater updater = new Updater(this, 72604, this.getFile(),
-				Updater.UpdateType.DEFAULT, false);
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 			sender.sendMessage("/tntlevel limit <blocklimit>");
 			sender.sendMessage("/tntlevel reload");
 		}
-		return false;
+		return true;
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
