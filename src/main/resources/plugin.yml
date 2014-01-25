@@ -1,6 +1,8 @@
 name: TnTLevelLimit
 main: kero.tntlevel.TnTLevelLimit
 version: ${project.version}
+description: TnT Level Limit
+author: Kerotein
 commands:
     tntlevel:
         usage: /tntlevel

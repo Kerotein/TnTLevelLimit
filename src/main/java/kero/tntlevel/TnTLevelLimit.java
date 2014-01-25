@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import kero.tntlevel.Updater;
+import kero.tntlevel.Updater.UpdateResult;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -27,7 +30,7 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
 		saveDefaultConfig();
-		tntlevel = getConfig().getInt("TnT Level Limit", 30);
+		tntlevel = getConfig().getInt("tnt-level-limit", 30);
 		getLogger().info(
 				"TnT Level Limit " + this.getDescription().getVersion()
 						+ " enabled");
@@ -36,6 +39,17 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 			metrics.start();
 		} catch (IOException e) {
 			// Failed to submit the statistics :-(
+		}
+		Boolean updateCheck = Boolean.valueOf(getConfig().getBoolean(
+				"update-check"));
+		if (updateCheck == false) {
+		} else {
+			Updater updater = new Updater(this, 72604, this.getFile(),
+					Updater.UpdateType.NO_DOWNLOAD, false);
+			if (updater.getResult() == UpdateResult.UPDATE_AVAILABLE) {
+				getLogger().info(
+						"**A new update is available for TnT Level Limit**");
+			}
 		}
 	}
 
@@ -70,7 +84,7 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 
 					tntlevel = Integer.parseInt(args[1]);
 
-					getConfig().set("TnT Level Limit", tntlevel);
+					getConfig().set("tnt-level-limit", tntlevel);
 					saveConfig();
 
 					sender.sendMessage(ChatColor.GREEN
@@ -84,7 +98,7 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 						return true;
 					}
 					reloadConfig();
-					tntlevel = getConfig().getInt("TnT Level Limit", 30);
+					tntlevel = getConfig().getInt("tnt-level-limit", 30);
 					sender.sendMessage(ChatColor.GREEN
 							+ "TnTLevelLimit config has been reloaded.");
 					return true;
