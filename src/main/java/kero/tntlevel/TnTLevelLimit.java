@@ -84,8 +84,10 @@ public class TnTLevelLimit extends JavaPlugin implements Listener {
 
 					tntlevel = Integer.parseInt(args[1]);
 
-					getConfig().set("tnt-level-limit", tntlevel);
-					saveConfig();
+					this.getConfig().set("tnt-level-limit", tntlevel);
+					System.out.println("The limit in the config is: "
+							+ getConfig().getInt("tnt-level-limit"));
+					this.saveConfig();
 
 					sender.sendMessage(ChatColor.GREEN
 							+ "TnT Level Limit is now " + ChatColor.AQUA
