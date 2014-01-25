@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>TnTLevelLimit</groupId>
 	<artifactId>TnTLevelLimit</artifactId>
-	<version>1.2</version>
+	<version>1.2.5</version>
 	<name>TnTLevelLimit</name>
 	<dependencies>
 		<dependency>
